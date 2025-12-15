@@ -1,0 +1,182 @@
+.board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.board {
+    position: relative;
+    background: linear-gradient(145deg, #d4a574 0%, #c4956a 50%, #b8875c 100%);
+    border-radius: 8px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 0 30px rgba(139, 69, 19, 0.15);
+    border: 6px solid #8b5a2b;
+}
+
+/* Fixed size board grid - pieces sit on intersections */
+.board-grid {
+    position: relative;
+    display: grid;
+    /* 9 columns for 9 intersection points horizontally */
+    grid-template-columns: repeat(9, 55px);
+    /* 10 rows for 10 intersection points vertically */
+    grid-template-rows: repeat(10, 55px);
+    padding: 20px;
+}
+
+@media (max-width: 600px) {
+    .board-grid {
+        grid-template-columns: repeat(9, 38px);
+        grid-template-rows: repeat(10, 38px);
+        padding: 12px;
+    }
+
+    .board {
+        border-width: 4px;
+    }
+}
+
+@media (max-width: 400px) {
+    .board-grid {
+        grid-template-columns: repeat(9, 32px);
+        grid-template-rows: repeat(10, 32px);
+        padding: 8px;
+    }
+}
+
+/* Each cell represents an intersection point */
+.cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* Valid move indicator - green dot */
+.move-indicator {
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(circle, #4caf50 0%, #2e7d32 100%);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    z-index: 5;
+}
+
+/* Last move - FROM position (orange/yellow highlight) */
+.cell.last-move-from::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 193, 7, 0.5);
+    border-radius: 4px;
+    z-index: 0;
+}
+
+/* Last move - TO position (green highlight with border) */
+.cell.last-move-to::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(139, 195, 74, 0.4);
+    border: 3px solid #8bc34a;
+    border-radius: 6px;
+    box-sizing: border-box;
+    z-index: 0;
+}
+
+/* Capture indicator for enemy pieces */
+.capture-indicator {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 3px solid #f44336;
+    border-radius: 50%;
+    box-sizing: border-box;
+    pointer-events: none;
+    z-index: 4;
+    animation: captureGlow 1s ease-in-out infinite;
+}
+
+@keyframes captureGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 15px rgba(244, 67, 54, 0.8);
+    }
+}
+
+/* Board lines - drawn as background using SVG */
+.board-lines {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .board-lines {
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+    }
+}
+
+@media (max-width: 400px) {
+    .board-lines {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+    }
+}
+
+/* River text styling */
+.river-text {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: "KaiTi", "楷体", "STKaiti", "SimSun", serif;
+    font-size: 18px;
+    color: #5c4033;
+    font-weight: bold;
+    letter-spacing: 0.4em;
+    z-index: 3;
+    pointer-events: none;
+}
+
+@media (max-width: 600px) {
+    .river-text {
+        font-size: 14px;
+        letter-spacing: 0.2em;
+    }
+}
+
+@media (max-width: 400px) {
+    .river-text {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+    }
+}
+
+.river-text-left {
+    left: 8%;
+}
+
+.river-text-right {
+    right: 8%;
+}
