@@ -20,6 +20,7 @@ interface BoardProps {
     checkedPlayer: Player | null;
     animatingPiece: AnimatingPiece | null;
     onCellClick: (row: number, col: number) => void;
+    isFlipped?: boolean;
 }
 
 // Fixed pixel sizes matching CSS variables
@@ -35,6 +36,7 @@ const Board: React.FC<BoardProps> = ({
     checkedPlayer,
     animatingPiece,
     onCellClick,
+    isFlipped = false,
 }) => {
     const isValidMove = (row: number, col: number): boolean => {
         return validMoves.some(([r, c]) => r === row && c === col);
@@ -68,7 +70,7 @@ const Board: React.FC<BoardProps> = ({
 
     return (
         <div className="board-container">
-            <div className="board">
+            <div className={`board ${isFlipped ? 'flipped' : ''}`}>
                 {/* River text */}
                 <div className="river-text river-text-left">楚 河</div>
                 <div className="river-text river-text-right">漢 界</div>
@@ -76,36 +78,43 @@ const Board: React.FC<BoardProps> = ({
                 {/* Board grid */}
                 <div className="board-grid">
                     {board.flatMap((row, rowIndex) =>
-                        row.map((piece, colIndex) => (
-                            <div
-                                key={`${rowIndex}-${colIndex}`}
-                                className={`cell 
-                                    ${isValidMove(rowIndex, colIndex) ? 'valid-move' : ''} 
-                                    ${isLastMoveFrom(rowIndex, colIndex) ? 'last-move-from' : ''}
-                                    ${isLastMoveTo(rowIndex, colIndex) ? 'last-move-to' : ''}
-                                `}
-                                onClick={() => onCellClick(rowIndex, colIndex)}
-                            >
-                                {piece && (
-                                    <Piece
-                                        piece={piece}
-                                        isSelected={isSelected(rowIndex, colIndex)}
-                                        isInCheck={isGeneralInCheck(piece)}
-                                        onClick={() => onCellClick(rowIndex, colIndex)}
-                                    />
-                                )}
-                                {isValidMove(rowIndex, colIndex) && !piece && (
-                                    <div className="move-indicator" />
-                                )}
-                                {isValidMove(rowIndex, colIndex) && piece && !canClickPiece(piece) && (
-                                    <div className="capture-indicator" />
-                                )}
-                            </div>
-                        ))
+                        row.map((piece, colIndex) => {
+                            // Hide piece at source position during animation
+                            const isAnimatingFrom = animatingPiece &&
+                                animatingPiece.from[0] === rowIndex &&
+                                animatingPiece.from[1] === colIndex;
+
+                            return (
+                                <div
+                                    key={`${rowIndex}-${colIndex}`}
+                                    className={`cell 
+                                        ${isValidMove(rowIndex, colIndex) ? 'valid-move' : ''} 
+                                        ${isLastMoveFrom(rowIndex, colIndex) ? 'last-move-from' : ''}
+                                        ${isLastMoveTo(rowIndex, colIndex) ? 'last-move-to' : ''}
+                                    `}
+                                    onClick={() => onCellClick(rowIndex, colIndex)}
+                                >
+                                    {piece && !isAnimatingFrom && (
+                                        <Piece
+                                            piece={piece}
+                                            isSelected={isSelected(rowIndex, colIndex)}
+                                            isInCheck={isGeneralInCheck(piece)}
+                                            onClick={() => onCellClick(rowIndex, colIndex)}
+                                        />
+                                    )}
+                                    {isValidMove(rowIndex, colIndex) && !piece && (
+                                        <div className="move-indicator" />
+                                    )}
+                                    {isValidMove(rowIndex, colIndex) && piece && !canClickPiece(piece) && (
+                                        <div className="capture-indicator" />
+                                    )}
+                                </div>
+                            );
+                        })
                     )}
                 </div>
 
-                {/* Animating piece with Framer Motion */}
+                {/* Animating piece overlay */}
                 <AnimatePresence>
                     {animatingPiece && (
                         <motion.div
@@ -115,20 +124,17 @@ const Board: React.FC<BoardProps> = ({
                                 top: PADDING + animatingPiece.from[0] * CELL_SIZE + CELL_SIZE / 2,
                                 x: '-50%',
                                 y: '-50%',
-                                scale: 1.1
                             }}
                             animate={{
                                 left: PADDING + animatingPiece.to[1] * CELL_SIZE + CELL_SIZE / 2,
                                 top: PADDING + animatingPiece.to[0] * CELL_SIZE + CELL_SIZE / 2,
                                 x: '-50%',
                                 y: '-50%',
-                                scale: 1
                             }}
                             transition={{
                                 type: "spring",
-                                stiffness: 200,
-                                damping: 25,
-                                mass: 1
+                                stiffness: 300,
+                                damping: 30,
                             }}
                         >
                             <Piece

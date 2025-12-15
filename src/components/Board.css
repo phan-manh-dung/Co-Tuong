@@ -14,6 +14,28 @@
         0 8px 32px rgba(0, 0, 0, 0.25),
         inset 0 0 30px rgba(139, 90, 43, 0.08);
     border: 6px solid #c49a6c;
+    transition: transform 0.3s ease;
+}
+
+/* Rotate board 180° for black player */
+.board.flipped {
+    transform: rotate(180deg);
+}
+
+/* Counter-rotate pieces so text stays readable */
+.board.flipped .piece {
+    transform: rotate(180deg);
+}
+
+/* Counter-rotate river text */
+.board.flipped .river-text {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Counter-rotate move indicators */
+.board.flipped .move-indicator,
+.board.flipped .cell::before {
+    transform: rotate(180deg);
 }
 
 /* Fixed pixel grid for accurate animation - scaled via CSS transform */

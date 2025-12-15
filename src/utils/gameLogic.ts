@@ -298,11 +298,18 @@ export const movePiece = (
 
 // Check if a player is in check
 export const isInCheck = (board: BoardType, player: Player): boolean => {
+    // Validate board
+    if (!board || !Array.isArray(board) || board.length !== BOARD_ROWS) {
+        console.warn('isInCheck: Invalid board format');
+        return false;
+    }
+
     // Find the general's position
     let generalPos: Position | null = null;
     const generalPiece = player === 'red' ? 'K' : 'k';
 
     for (let row = 0; row < BOARD_ROWS; row++) {
+        if (!board[row] || !Array.isArray(board[row])) continue;
         for (let col = 0; col < BOARD_COLS; col++) {
             if (board[row][col] === generalPiece) {
                 generalPos = [row, col];
@@ -317,6 +324,7 @@ export const isInCheck = (board: BoardType, player: Player): boolean => {
     // Check if any enemy piece can capture the general
     const enemy = player === 'red' ? 'black' : 'red';
     for (let row = 0; row < BOARD_ROWS; row++) {
+        if (!board[row] || !Array.isArray(board[row])) continue;
         for (let col = 0; col < BOARD_COLS; col++) {
             const piece = board[row][col];
             if (piece && getPieceOwner(piece) === enemy) {
