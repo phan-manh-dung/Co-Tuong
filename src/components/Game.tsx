@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import type { BoardType, Position, Player } from '../utils/constants';
 import {
     initializeBoard,
@@ -18,6 +18,12 @@ interface Move {
     captured: string | null;
 }
 
+interface AnimatingPiece {
+    piece: string;
+    from: Position;
+    to: Position;
+}
+
 const Game: React.FC = () => {
     const [board, setBoard] = useState<BoardType>(initializeBoard);
     const [currentPlayer, setCurrentPlayer] = useState<Player>('red');
@@ -26,9 +32,11 @@ const Game: React.FC = () => {
     const [moveHistory, setMoveHistory] = useState<Move[]>([]);
     const [lastMove, setLastMove] = useState<{ from: Position; to: Position } | null>(null);
     const [gameStatus, setGameStatus] = useState<'playing' | 'red_win' | 'black_win'>('playing');
+    const [animatingPiece, setAnimatingPiece] = useState<AnimatingPiece | null>(null);
+    const isAnimating = useRef(false);
 
     const handleCellClick = useCallback((row: number, col: number) => {
-        if (gameStatus !== 'playing') return;
+        if (gameStatus !== 'playing' || isAnimating.current) return;
 
         const clickedPiece = board[row][col];
 
@@ -39,27 +47,48 @@ const Game: React.FC = () => {
             if (isValidDestination) {
                 const movingPiece = board[selectedRow][selectedCol]!;
                 const capturedPiece = board[row][col];
-                const newBoard = movePiece(board, selectedPos, [row, col]);
 
-                setBoard(newBoard);
+                // Update lastMove and history immediately (so green dot appears right away)
+                setLastMove({ from: selectedPos, to: [row, col] });
                 setMoveHistory(prev => [...prev, {
                     from: selectedPos,
                     to: [row, col],
                     piece: movingPiece,
                     captured: capturedPiece
                 }]);
-                setLastMove({ from: selectedPos, to: [row, col] });
 
-                const nextPlayer = currentPlayer === 'red' ? 'black' : 'red';
+                // Start animation
+                isAnimating.current = true;
+                setAnimatingPiece({
+                    piece: movingPiece,
+                    from: selectedPos,
+                    to: [row, col]
+                });
 
-                if (isCheckmate(newBoard, nextPlayer)) {
-                    setGameStatus(currentPlayer === 'red' ? 'red_win' : 'black_win');
-                } else {
-                    setCurrentPlayer(nextPlayer);
-                }
-
+                // Create intermediate board (remove piece from source, remove captured piece)
+                const tempBoard = board.map(r => [...r]);
+                tempBoard[selectedRow][selectedCol] = null;
+                tempBoard[row][col] = null; // Also remove captured piece so animation looks cleaner
+                setBoard(tempBoard);
                 setSelectedPos(null);
                 setValidMoves([]);
+
+                // After animation completes, update final board state
+                setTimeout(() => {
+                    const newBoard = movePiece(board, selectedPos, [row, col]);
+                    setBoard(newBoard);
+                    setAnimatingPiece(null);
+                    isAnimating.current = false;
+
+                    const nextPlayer = currentPlayer === 'red' ? 'black' : 'red';
+
+                    if (isCheckmate(newBoard, nextPlayer)) {
+                        setGameStatus(currentPlayer === 'red' ? 'red_win' : 'black_win');
+                    } else {
+                        setCurrentPlayer(nextPlayer);
+                    }
+                }, 350); // Animation duration
+
                 return;
             }
 
@@ -88,10 +117,11 @@ const Game: React.FC = () => {
         setMoveHistory([]);
         setLastMove(null);
         setGameStatus('playing');
+        setAnimatingPiece(null);
     };
 
     const handleUndo = () => {
-        if (moveHistory.length === 0) return;
+        if (moveHistory.length === 0 || isAnimating.current) return;
 
         const lastMoveRecord = moveHistory[moveHistory.length - 1];
         const newBoard = board.map(row => [...row]);
@@ -164,6 +194,8 @@ const Game: React.FC = () => {
                         validMoves={validMoves}
                         currentPlayer={currentPlayer}
                         lastMove={lastMove}
+                        checkedPlayer={isRedInCheck ? 'red' : (isBlackInCheck ? 'black' : null)}
+                        animatingPiece={animatingPiece}
                         onCellClick={handleCellClick}
                     />
                 </div>

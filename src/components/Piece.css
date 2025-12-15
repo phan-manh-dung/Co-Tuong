@@ -1,117 +1,119 @@
 .piece {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 900;
   font-size: 26px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   user-select: none;
   position: relative;
   box-sizing: border-box;
   z-index: 10;
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 @media (max-width: 600px) {
   .piece {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 450px) {
+  .piece {
+    width: 30px;
+    height: 30px;
     font-size: 18px;
   }
 }
 
-@media (max-width: 400px) {
-  .piece {
-    width: 28px;
-    height: 28px;
-    font-size: 15px;
-  }
-}
-
-/* Red pieces - warm golden background with red text */
+/* Red pieces - warm gradient with white text */
 .piece.red {
-  background: radial-gradient(circle at 30% 30%, #ffd54f, #ffb300, #ff8f00);
-  border: 3px solid #bf360c;
+  background: radial-gradient(circle at 35% 35%, #d85050, #b83030, #8b2020);
+  border: 2.5px solid #6b1a1a;
   box-shadow:
     0 3px 8px rgba(0, 0, 0, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
-}
-
-@media (max-width: 600px) {
-
-  .piece.red,
-  .piece.black {
-    border-width: 2px;
-  }
+    inset 0 2px 6px rgba(255, 255, 255, 0.25),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .piece.red .piece-char {
-  color: #b71c1c;
+  color: #ffffff;
   text-shadow:
-    1px 1px 0 rgba(255, 255, 255, 0.3),
-    -1px -1px 0 rgba(0, 0, 0, 0.1);
+    0 1px 1px rgba(0, 0, 0, 0.4),
+    0 0 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Black pieces - olive/dark golden background with dark green text */
+/* Black pieces - dark charcoal with white text */
 .piece.black {
-  background: radial-gradient(circle at 30% 30%, #c5b358, #9e8b2f, #7a6b1f);
-  border: 3px solid #33691e;
+  background: radial-gradient(circle at 35% 35%, #555555, #3a3a3a, #252525);
+  border: 2.5px solid #111111;
   box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.3),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+    0 3px 8px rgba(0, 0, 0, 0.5),
+    inset 0 2px 6px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.35);
 }
 
 .piece.black .piece-char {
-  color: #1b5e20;
+  color: #ffffff;
   text-shadow:
-    1px 1px 0 rgba(255, 255, 255, 0.2),
-    -1px -1px 0 rgba(0, 0, 0, 0.1);
+    0 1px 1px rgba(0, 0, 0, 0.5),
+    0 0 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Hover effect */
 .piece:hover {
-  transform: scale(1.08);
-  box-shadow:
-    0 5px 12px rgba(0, 0, 0, 0.5),
-    inset 0 2px 4px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+  transform: scale(1.06);
 }
 
 /* Selected piece */
 .piece.selected {
   transform: scale(1.1);
   box-shadow:
-    0 0 0 3px #4caf50,
-    0 0 20px rgba(76, 175, 80, 0.6),
-    0 5px 12px rgba(0, 0, 0, 0.4);
-  animation: selectedPulse 1.5s ease-in-out infinite;
+    0 0 0 3px #e65100,
+    0 0 15px rgba(230, 81, 0, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.4);
 }
 
-@keyframes selectedPulse {
+/* IN CHECK - Red glowing border */
+.piece.in-check {
+  box-shadow:
+    0 0 0 3px #f44336,
+    0 0 20px rgba(244, 67, 54, 0.7),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+  animation: checkPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes checkPulse {
 
   0%,
   100% {
     box-shadow:
-      0 0 0 3px #4caf50,
-      0 0 15px rgba(76, 175, 80, 0.5),
-      0 5px 12px rgba(0, 0, 0, 0.4);
+      0 0 0 3px #f44336,
+      0 0 15px rgba(244, 67, 54, 0.5),
+      0 4px 10px rgba(0, 0, 0, 0.4);
   }
 
   50% {
     box-shadow:
-      0 0 0 4px #66bb6a,
-      0 0 25px rgba(76, 175, 80, 0.7),
-      0 5px 12px rgba(0, 0, 0, 0.4);
+      0 0 0 4px #ef5350,
+      0 0 25px rgba(244, 67, 54, 0.8),
+      0 4px 10px rgba(0, 0, 0, 0.4);
   }
 }
 
+/* Beautiful calligraphy font styling */
 .piece-char {
-  font-family: "KaiTi", "楷体", "STKaiti", "SimSun", "宋体", serif;
+  font-family: "Noto Serif SC", "Source Han Serif SC", "KaiTi", "楷体", "STKaiti", "SimSun", "宋体", serif;
   line-height: 1;
   font-weight: 900;
+  letter-spacing: -0.02em;
 }

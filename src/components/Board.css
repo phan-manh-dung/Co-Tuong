@@ -8,46 +8,56 @@
 
 .board {
     position: relative;
-    background: linear-gradient(145deg, #d4a574 0%, #c4956a 50%, #b8875c 100%);
-    border-radius: 8px;
+    background: linear-gradient(145deg, #f5e6d3 0%, #eed9c4 50%, #e8d0b8 100%);
+    border-radius: 10px;
     box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        inset 0 0 30px rgba(139, 69, 19, 0.15);
-    border: 6px solid #8b5a2b;
+        0 8px 32px rgba(0, 0, 0, 0.25),
+        inset 0 0 30px rgba(139, 90, 43, 0.08);
+    border: 6px solid #c49a6c;
 }
 
-/* Fixed size board grid - pieces sit on intersections */
+/* Fixed pixel grid for accurate animation - scaled via CSS transform */
 .board-grid {
+    --cell-size: 52px;
+    --board-padding: 16px;
+
     position: relative;
     display: grid;
-    /* 9 columns for 9 intersection points horizontally */
-    grid-template-columns: repeat(9, 55px);
-    /* 10 rows for 10 intersection points vertically */
-    grid-template-rows: repeat(10, 55px);
-    padding: 20px;
+    grid-template-columns: repeat(9, var(--cell-size));
+    grid-template-rows: repeat(10, var(--cell-size));
+    padding: var(--board-padding);
+    gap: 0;
+}
+
+/* Scale board to fit viewport */
+@media (max-height: 700px) {
+    .board {
+        transform: scale(0.85);
+        transform-origin: center;
+    }
+}
+
+@media (max-height: 600px) {
+    .board {
+        transform: scale(0.75);
+        transform-origin: center;
+    }
 }
 
 @media (max-width: 600px) {
     .board-grid {
-        grid-template-columns: repeat(9, 38px);
-        grid-template-rows: repeat(10, 38px);
-        padding: 12px;
-    }
-
-    .board {
-        border-width: 4px;
+        --cell-size: 42px;
+        --board-padding: 12px;
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 450px) {
     .board-grid {
-        grid-template-columns: repeat(9, 32px);
-        grid-template-rows: repeat(10, 32px);
-        padding: 8px;
+        --cell-size: 36px;
+        --board-padding: 10px;
     }
 }
 
-/* Each cell represents an intersection point */
 .cell {
     position: relative;
     display: flex;
@@ -57,126 +67,102 @@
     z-index: 2;
 }
 
-/* Valid move indicator - green dot */
+/* Valid move indicator - small orange dot */
 .move-indicator {
-    width: 16px;
-    height: 16px;
-    background: radial-gradient(circle, #4caf50 0%, #2e7d32 100%);
+    width: 10px;
+    height: 10px;
+    background: #e65100;
     border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     z-index: 5;
 }
 
-/* Last move - FROM position (orange/yellow highlight) */
+/* Last move - FROM position */
 .cell.last-move-from::before {
     content: '';
     position: absolute;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 193, 7, 0.5);
-    border-radius: 4px;
-    z-index: 0;
+    width: 10px;
+    height: 10px;
+    background: #78e479;
+    border-radius: 50%;
+    z-index: 6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Last move - TO position (green highlight with border) */
+/* Last move - TO position */
 .cell.last-move-to::before {
     content: '';
     position: absolute;
-    width: 100%;
-    height: 100%;
-    background: rgba(139, 195, 74, 0.4);
-    border: 3px solid #8bc34a;
-    border-radius: 6px;
-    box-sizing: border-box;
-    z-index: 0;
+    width: 10px;
+    height: 10px;
+    background: #78e479;
+    border-radius: 50%;
+    z-index: 6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Capture indicator for enemy pieces */
+/* Orange ring around the piece that just moved */
+.cell.last-move-to .piece {
+    box-shadow:
+        0 0 0 3px #e65100,
+        0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Capture indicator */
 .capture-indicator {
     position: absolute;
     width: 100%;
     height: 100%;
-    border: 3px solid #f44336;
+    border: 3px solid #e65100;
     border-radius: 50%;
     box-sizing: border-box;
     pointer-events: none;
     z-index: 4;
-    animation: captureGlow 1s ease-in-out infinite;
 }
 
-@keyframes captureGlow {
-
-    0%,
-    100% {
-        box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
-    }
-
-    50% {
-        box-shadow: 0 0 15px rgba(244, 67, 54, 0.8);
-    }
-}
-
-/* Board lines - drawn as background using SVG */
+/* Board lines SVG */
 .board-lines {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
+    top: var(--board-padding, 16px);
+    left: var(--board-padding, 16px);
+    right: var(--board-padding, 16px);
+    bottom: var(--board-padding, 16px);
     z-index: 1;
     pointer-events: none;
 }
 
-@media (max-width: 600px) {
-    .board-lines {
-        top: 12px;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-    }
-}
-
-@media (max-width: 400px) {
-    .board-lines {
-        top: 8px;
-        left: 8px;
-        right: 8px;
-        bottom: 8px;
-    }
-}
-
-/* River text styling */
+/* River text */
 .river-text {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     font-family: "KaiTi", "楷体", "STKaiti", "SimSun", serif;
     font-size: 18px;
-    color: #5c4033;
+    color: #8b6914;
     font-weight: bold;
     letter-spacing: 0.4em;
     z-index: 3;
     pointer-events: none;
-}
-
-@media (max-width: 600px) {
-    .river-text {
-        font-size: 14px;
-        letter-spacing: 0.2em;
-    }
-}
-
-@media (max-width: 400px) {
-    .river-text {
-        font-size: 11px;
-        letter-spacing: 0.1em;
-    }
+    white-space: nowrap;
 }
 
 .river-text-left {
-    left: 8%;
+    left: 5%;
 }
 
 .river-text-right {
-    right: 8%;
+    right: 5%;
+}
+
+/* Animating piece overlay */
+.animating-piece {
+    position: absolute;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.animating-piece .piece {
+    box-shadow:
+        0 0 0 3px #e65100,
+        0 8px 20px rgba(0, 0, 0, 0.5);
 }

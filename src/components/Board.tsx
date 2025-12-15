@@ -1,8 +1,15 @@
 import React from 'react';
 import type { BoardType, Position, Player } from '../utils/constants';
 import { getPieceOwner } from '../utils/gameLogic';
+import { motion, AnimatePresence } from 'framer-motion';
 import Piece from './Piece';
 import './Board.css';
+
+interface AnimatingPiece {
+    piece: string;
+    from: Position;
+    to: Position;
+}
 
 interface BoardProps {
     board: BoardType;
@@ -10,8 +17,14 @@ interface BoardProps {
     validMoves: Position[];
     currentPlayer: Player;
     lastMove: { from: Position; to: Position } | null;
+    checkedPlayer: Player | null;
+    animatingPiece: AnimatingPiece | null;
     onCellClick: (row: number, col: number) => void;
 }
+
+// Fixed pixel sizes matching CSS variables
+const CELL_SIZE = 52;
+const PADDING = 16;
 
 const Board: React.FC<BoardProps> = ({
     board,
@@ -19,6 +32,8 @@ const Board: React.FC<BoardProps> = ({
     validMoves,
     currentPlayer,
     lastMove,
+    checkedPlayer,
+    animatingPiece,
     onCellClick,
 }) => {
     const isValidMove = (row: number, col: number): boolean => {
@@ -42,6 +57,13 @@ const Board: React.FC<BoardProps> = ({
     const canClickPiece = (piece: string | null): boolean => {
         if (!piece) return false;
         return getPieceOwner(piece) === currentPlayer;
+    };
+
+    const isGeneralInCheck = (piece: string | null): boolean => {
+        if (!piece || !checkedPlayer) return false;
+        const isGeneral = piece.toUpperCase() === 'K';
+        const owner = getPieceOwner(piece);
+        return isGeneral && owner === checkedPlayer;
     };
 
     return (
@@ -68,6 +90,7 @@ const Board: React.FC<BoardProps> = ({
                                     <Piece
                                         piece={piece}
                                         isSelected={isSelected(rowIndex, colIndex)}
+                                        isInCheck={isGeneralInCheck(piece)}
                                         onClick={() => onCellClick(rowIndex, colIndex)}
                                     />
                                 )}
@@ -82,9 +105,45 @@ const Board: React.FC<BoardProps> = ({
                     )}
                 </div>
 
-                {/* Board lines overlay - lines connect intersection centers */}
+                {/* Animating piece with Framer Motion */}
+                <AnimatePresence>
+                    {animatingPiece && (
+                        <motion.div
+                            className="animating-piece"
+                            initial={{
+                                left: PADDING + animatingPiece.from[1] * CELL_SIZE + CELL_SIZE / 2,
+                                top: PADDING + animatingPiece.from[0] * CELL_SIZE + CELL_SIZE / 2,
+                                x: '-50%',
+                                y: '-50%',
+                                scale: 1.1
+                            }}
+                            animate={{
+                                left: PADDING + animatingPiece.to[1] * CELL_SIZE + CELL_SIZE / 2,
+                                top: PADDING + animatingPiece.to[0] * CELL_SIZE + CELL_SIZE / 2,
+                                x: '-50%',
+                                y: '-50%',
+                                scale: 1
+                            }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 200,
+                                damping: 25,
+                                mass: 1
+                            }}
+                        >
+                            <Piece
+                                piece={animatingPiece.piece}
+                                isSelected={false}
+                                isInCheck={false}
+                                onClick={() => { }}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Board lines overlay */}
                 <svg className="board-lines" viewBox="0 0 9 10" preserveAspectRatio="none">
-                    {/* Horizontal lines - 10 lines from y=0.5 to y=9.5 */}
+                    {/* Horizontal lines */}
                     {Array.from({ length: 10 }, (_, i) => (
                         <line
                             key={`h-${i}`}
@@ -92,12 +151,12 @@ const Board: React.FC<BoardProps> = ({
                             y1={i + 0.5}
                             x2="8.5"
                             y2={i + 0.5}
-                            stroke="#5c3317"
-                            strokeWidth="0.04"
+                            stroke="#c49a6c"
+                            strokeWidth="0.03"
                         />
                     ))}
 
-                    {/* Vertical lines (top half - rows 0-4) */}
+                    {/* Vertical lines (top half) */}
                     {Array.from({ length: 9 }, (_, i) => (
                         <line
                             key={`v-top-${i}`}
@@ -105,12 +164,12 @@ const Board: React.FC<BoardProps> = ({
                             y1="0.5"
                             x2={i + 0.5}
                             y2="4.5"
-                            stroke="#5c3317"
-                            strokeWidth="0.04"
+                            stroke="#c49a6c"
+                            strokeWidth="0.03"
                         />
                     ))}
 
-                    {/* Vertical lines (bottom half - rows 5-9) */}
+                    {/* Vertical lines (bottom half) */}
                     {Array.from({ length: 9 }, (_, i) => (
                         <line
                             key={`v-bottom-${i}`}
@@ -118,22 +177,22 @@ const Board: React.FC<BoardProps> = ({
                             y1="5.5"
                             x2={i + 0.5}
                             y2="9.5"
-                            stroke="#5c3317"
-                            strokeWidth="0.04"
+                            stroke="#c49a6c"
+                            strokeWidth="0.03"
                         />
                     ))}
 
-                    {/* Left and right border lines through river */}
-                    <line x1="0.5" y1="4.5" x2="0.5" y2="5.5" stroke="#5c3317" strokeWidth="0.04" />
-                    <line x1="8.5" y1="4.5" x2="8.5" y2="5.5" stroke="#5c3317" strokeWidth="0.04" />
+                    {/* Left and right border through river */}
+                    <line x1="0.5" y1="4.5" x2="0.5" y2="5.5" stroke="#c49a6c" strokeWidth="0.03" />
+                    <line x1="8.5" y1="4.5" x2="8.5" y2="5.5" stroke="#c49a6c" strokeWidth="0.03" />
 
-                    {/* Palace diagonals - top (black side) */}
-                    <line x1="3.5" y1="0.5" x2="5.5" y2="2.5" stroke="#5c3317" strokeWidth="0.04" />
-                    <line x1="5.5" y1="0.5" x2="3.5" y2="2.5" stroke="#5c3317" strokeWidth="0.04" />
+                    {/* Palace diagonals - top */}
+                    <line x1="3.5" y1="0.5" x2="5.5" y2="2.5" stroke="#c49a6c" strokeWidth="0.03" />
+                    <line x1="5.5" y1="0.5" x2="3.5" y2="2.5" stroke="#c49a6c" strokeWidth="0.03" />
 
-                    {/* Palace diagonals - bottom (red side) */}
-                    <line x1="3.5" y1="7.5" x2="5.5" y2="9.5" stroke="#5c3317" strokeWidth="0.04" />
-                    <line x1="5.5" y1="7.5" x2="3.5" y2="9.5" stroke="#5c3317" strokeWidth="0.04" />
+                    {/* Palace diagonals - bottom */}
+                    <line x1="3.5" y1="7.5" x2="5.5" y2="9.5" stroke="#c49a6c" strokeWidth="0.03" />
+                    <line x1="5.5" y1="7.5" x2="3.5" y2="9.5" stroke="#c49a6c" strokeWidth="0.03" />
                 </svg>
             </div>
         </div>
